@@ -1,12 +1,300 @@
 import os,sys,zlib
 from struct import unpack as bin_unpack
+from fnmatch import fnmatch
+
+format_table = {2069149184L: 'atd',
+ 569589249L: 'amslt',
+ 984332802L: 'emc',
+ 1105409028L: 'lan',
+ 2094065534L: 'mpm',
+ 675990535L: 'w03d',
+ 1311698952L: 'hdp',
+ 2023142922L: 'asd',
+ 1299185676L: 'kc3',
+ 1878491666L: 'areainfo',
+ 866668052L: 'hgi',
+ 928443925L: 'ptex',
+ 1515346966L: 'pel',
+ 1312388119L: 'ean',
+ 650035740L: 'qdp',
+ 1362726941L: 'plbasecmd',
+ 51767327L: 'sds',
+ 1448329648L: 'hts',
+ 2046759369L: 'olos',
+ 1677075492L: 'ipt',
+ 477450791L: 'w04d',
+ 1888354344L: 'lanl',
+ 1223207977L: 'dtt',
+ 1530671149L: 'rem',
+ 1729714734L: 'mca',
+ 70256477L: 'nis',
+ 755114545L: 'w04m',
+ 1124477491L: 'npcId',
+ 1853251125L: 'insectessenceskill',
+ 1263659062L: 'olvl',
+ 1518072073L: 'slw14',
+ 514927672L: 'sep',
+ 1275967545L: 'sdl',
+ 337388602L: 'insectabirity',
+ 1011998780L: 'ard',
+ 639163967L: 'srq',
+ 969220160L: 'lcm',
+ 92982850L: 'acn',
+ 283895875L: 'mss',
+ 1130414152L: 'slw04',
+ 281991914L: 'pcl',
+ 293436624L: 'mcm',
+ 980048461L: 'stq',
+ 573165649L: 'dcd',
+ 260489298L: 'oskl',
+ 1646397523L: 'vfp',
+ 1834674260L: 'efl',
+ 1709321301L: 'w01m',
+ 1486968918L: 'mod',
+ 1597421145L: 'way',
+ 1922643990L: 'w11m',
+ 413737564L: 'pma',
+ 440310970L: 'ntd',
+ 2086559840L: 'osa',
+ 1886428991L: 'ctl',
+ 1255574627L: 'slw08',
+ 604508159L: 'fht',
+ 1587980904L: 'oxpb',
+ 91016636L: 'tucyl',
+ 1847007854L: 'mss',
+ 1619434097L: 'evt',
+ 1252431986L: 'shell',
+ 591044371L: 'kcg',
+ 1477618807L: 'gpd',
+ 1166927992L: 'sad',
+ 231793786L: 'AngleLimit',
+ 113717883L: 'fmt',
+ 1161901692L: 'pts',
+ 564227197L: 'w07d',
+ 847131262L: 'abd',
+ 1600796799L: 'cms',
+ 944983681L: 'isa',
+ 27335019L: 'doi',
+ 359301253L: 'fmi',
+ 2078945414L: 'cfl',
+ 619750535L: 'kcs',
+ 1043544200L: 'w10m',
+ 438779531L: 'npcSd',
+ 590226060L: 'revr_ctr',
+ 692739725L: 'hta',
+ 725659279L: 'equr',
+ 11354259L: 'w12d',
+ 695538324L: 'tril',
+ 1941387545L: 'w14d',
+ 432641220L: 'mex',
+ 606843546L: 'gmd',
+ 1882847087L: 'oxpv',
+ 1725418890L: 'mai',
+ 1398642335L: 'ctc',
+ 847477409L: 'w06d',
+ 1037155573L: 'slw09',
+ 368895686L: 'wpd',
+ 1964703522L: 'tams',
+ 659146920L: 'mrl',
+ 744091305L: 'sksg',
+ 1142908074L: 'slw13',
+ 981022322L: 'w14m',
+ 133654703L: 'gii',
+ 1480552624L: 'rdb',
+ 1383557809L: 'ips',
+ 1875671764L: 'pec',
+ 43161088L: 'qdm',
+ 2050579639L: 'sab',
+ 806204033L: 'igf',
+ 1891329210L: 'hde',
+ 186124478L: 'w14d',
+ 1414765294L: 'sup',
+ 49522884L: 'w10d',
+ 801162949L: 'tuto',
+ 1009278150L: 'otd',
+ 856306887L: 'slw01',
+ 1583039688L: 'sls',
+ 762224996L: 'slw06',
+ 692595915L: 'w00m',
+ 1232047906L: 'fup',
+ 121863374L: 'ase',
+ 1457033936L: 'areaeatdat',
+ 1724423890L: 'plpartsdisp',
+ 168708308L: 'emd',
+ 1063804110L: 'w09d',
+ 1651229910L: 'mrs',
+ 1956783238L: 'spval',
+ 2133733088L: 'areaacttbl',
+ 399922384L: 'w13d',
+ 1896253666L: 'squs',
+ 1158289123L: 'pntpos',
+ 2134994149L: 'mcn',
+ 347457766L: 'sbk',
+ 1124433020L: 'alc',
+ 208955626L: 'kcm',
+ 521444076L: 'mdd',
+ 596452818L: 'w07m',
+ 713556206L: 'sai',
+ 659851133L: 'trll',
+ 1779855600L: 'fld',
+ 70761714L: 'grw',
+ 1058266684L: 'ots',
+ 355479284L: 'lyt',
+ 1936864501L: 'acd',
+ 299802358L: 'isd',
+ 1488722985L: 'mib',
+ 852136696L: 'esl',
+ 1799463673L: 'scd',
+ 48039551L: 'kod',
+ 1041105660L: 'fsh',
+ 374300927L: 'nld',
+ 1648624897L: 'lmd',
+ 881349243L: 'npcMd',
+ 1132295940L: 'w00d',
+ 1938099461L: 'arc',
+ 202353414L: 'otml',
+ 422022407L: 'skst',
+ 2051121459L: 'w08d',
+ 68756951L: 'mvp',
+ 1676859149L: 'apd',
+ 1561736464L: 'slw10',
+ 1965219091L: 'arcd',
+ 876868372L: 'iaf',
+ 179651861L: 'bui',
+ 915313945L: 'bgsd',
+ 14727964L: 'qdl',
+ 465316126L: 'dtp',
+ 595484960L: 'kc1',
+ 367627553L: 'areaseldat',
+ 298013986L: 'gr2',
+ 1747654949L: 'lfx',
+ 1771750961L: 'npcMdl',
+ 667364136L: 'w03m',
+ 1100546859L: 'w00d',
+ 1524394284L: 'emsizetbl',
+ 449295661L: 'bdd',
+ 435333937L: 'tpil',
+ 1758275891L: 'ses',
+ 759571968L: 'gfd',
+ 402713399L: 'emyure',
+ 1219586360L: 'isl',
+ 1200138041L: 'w02d',
+ 1637688287L: 'slt',
+ 208424383L: 'kcr',
+ 625195326L: 'ses',
+ 637364543L: 'ipl',
+ 1653472065L: 'gr2s',
+ 623629122L: 'ebcd',
+ 1315112771L: 'w06d',
+ 1476862262L: 'sfsa',
+ 815341382L: 'frl',
+ 1864836428L: 'w06m',
+ 637038306L: 'w07d',
+ 552441680L: 'pep',
+ 2097305656L: 'mla',
+ 1278821091L: 'skt',
+ 1042959758L: 'amlt',
+ 1834658361L: 'npcBd',
+ 2042919769L: 'mca',
+ 1838566681L: 'kca',
+ 750722106L: 'w01d',
+ 1891986782L: 'skmt',
+ 1858605660L: 'raps',
+ 518122852L: 'areacmnlink',
+ 466372966L: 'srqr',
+ 790390631L: 'saou',
+ 1457657704L: 'w01d',
+ 857232444L: 'slw12',
+ 1067822442L: 'ict',
+ 817643371L: 'w13m',
+ 1274564463L: 'arealinkdat',
+ 1832564080L: 'w09d',
+ 858583921L: 'ssjjp',
+ 735033491L: 'otil',
+ 1746904948L: 'owp',
+ 1855401846L: 'kad',
+ 626225181L: 'sem',
+ 427707770L: 'maptime',
+ 711491903L: 'mlc',
+ 1246455676L: 'rev_ctr',
+ 704865661L: 'slw02',
+ 176009598L: 'deco',
+ 2069308777L: 'olsk',
+ 1988234625L: 'lmt',
+ 1560565227L: 'slw03',
+ 1686392196L: 'mri',
+ 1251399550L: 'w04d',
+ 705758598L: 'slw11',
+ 344682377L: 'mef',
+ 1527633802L: 'otp',
+ 1867953218L: 'opl',
+ 465555854L: 'mib',
+ 102825345L: 'oec',
+ 1554439059L: 'sla00',
+ 580158356L: 'gui',
+ 1320586478L: 'hds',
+ 1563312537L: 'ane',
+ 208487321L: 'sid',
+ 980889754L: 'kc2',
+ 1375500191L: 'sbc',
+ 990180769L: 'ape',
+ 1990318498L: 'isp',
+ 2010579779L: 'atr',
+ 1640104868L: 'fms',
+ 1141703761L: 'slw00',
+ 2085127080L: 'itm',
+ 1032567724L: 'etd',
+ 1869556653L: 'w02d',
+ 1640987055L: 'qsg',
+ 2030175152L: 'angryprm',
+ 24945074L: 'ased',
+ 969464936L: 'skd',
+ 1802316726L: 'w02m',
+ 1251073465L: 'mle',
+ 1661917115L: 'nan',
+ 777742357L: 'w10d',
+ 430837L: 'amskl',
+ 1410156993L: 'plweplist',
+ 1442619637L: 'tlil',
+ 631638980L: 'ssjje',
+ 1110789574L: 'wcd',
+ 1774457799L: 'w13d',
+ 155710408L: 'areapatrol',
+ 625150409L: 'psl',
+ 591014989L: 'plgmktype',
+ 890684370L: 'lfd',
+ 1263283155L: 'plcmdtbllist',
+ 879008094L: 'ots',
+ 106132949L: 'sis',
+ 838243286L: 'moflex',
+ 101087481L: 'w12d',
+ 1507443674L: 'dtb',
+ 1837223901L: 'oar',
+ 624119262L: 'trdl',
+ 1773479391L: 'otpt',
+ 906442720L: 'w09m',
+ 366445307L: 'sbkr',
+ 2058172286L: 'w08m',
+ 506633980L: 'rlt',
+ 606035435L: 'tex',
+ 1411868652L: 'cskd',
+ 2014593006L: 'w03d',
+ 1353332720L: 'w08d',
+ 1516868082L: 'slw07',
+ 1536060403L: 'itp',
+ 248348148L: 'scs',
+ 2081832949L: 'w12m',
+ 369306104L: 'rem',
+ 1831977978L: 'w11d',
+ 377338879L: 'stqr',
+ 958430294L: 'w11d',
+ 919144957L: 'mre',
+ 2549759L: 'ccl'}
 
 class c_file(object):
-	def __init__(self,data):
-		self.filename = readstring(data)
-		self.offset = bin_unpack('<I', data[0x4C:])[0]
-		self.size = bin_unpack('<I', data[0x44:0x48])[0]
-		self.data = ''
+    def __init__(self,data):
+        self.filename = readstring(data)
+        self.type, self.size, self.usize, self.offset = bin_unpack('IIII',data[0x40:])
 
 def mkdir(path):
         isExists=os.path.exists(path)
@@ -17,40 +305,41 @@ def mkdir(path):
                 return False
 
 def readstring(data):
-	s = ''
-	for c in data:
-		if not c == '\x00':
-			s += c
-		else:
-			return s
+    s = ''
+    for c in data:
+        if not c == '\x00':
+            s += c
+        else:
+            return s
 
-def unpack(filename):
-	with open(filename,'rb')as arc:
-		arc.seek(6,0)
-		filecount = bin_unpack('H', arc.read(2))[0]
-		arc.seek(4, 1)
+def unpack(filename, pattern = '*.*'):
+    with open(filename,'rb')as arc:
+        arc.seek(6,0)
+        filecount = bin_unpack('H', arc.read(2))[0]
+        arc.seek(4, 1)
 
-		c_entries = []
+        c_entries = []
 
-		for i in range(filecount):
-			c_entry = c_file(arc.read(0x50))
-			c_entries.append(c_entry)
-		for i in range(filecount):
-			arc.seek(c_entries[i].offset, 0)
-			try:
-				c_entries[i].data = zlib.decompress(arc.read(c_entries[i].size))
-			except:
-				c_entries[i].data = arc.read(c_entries[i].size)
-				print 'Decompress Failed.'
+        for i in range(filecount):
+            c_entry = c_file(arc.read(0x50))
+            c_entries.append(c_entry)
+        for i in range(filecount):
+            arc.seek(c_entries[i].offset, 0)
+            try:
+                c_entries[i].data = zlib.decompress(arc.read(c_entries[i].size))
+            except:
+                c_entries[i].data = arc.read(c_entries[i].size)
+                print 'Decompress Failed.'
 
-		for e in c_entries:
-			path = os.path.splitext(filename)[0] + '_' + os.path.splitext(filename)[1][1:] + '\\'
-			path = path + e.filename
-			mkdir(os.path.split(path)[0])
-			with open(path, 'wb')as outfile:
-				print 'Save:', path
-				outfile.write(e.data)
+        for e in c_entries:
+            path = os.path.splitext(filename)[0] + '_' + os.path.splitext(filename)[1][1:] + '\\'
+            path = '%s%s.%s'%(path, e.filename, format_table[e.type])
+            mkdir(os.path.split(path)[0])
+            if fnmatch(path,pattern):
+                with open(path, 'wb')as outfile:
+                    print 'Save:', path
+                    outfile.write(e.data)
 
-
-for filename in sys.argv[1:]:
-	unpack(filename)
+if '__main__' == __name__:
+    for filename in sys.argv[1:]:
+        unpack(filename)
