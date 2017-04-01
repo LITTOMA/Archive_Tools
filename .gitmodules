@@ -1,0 +1,3 @@
+[submodule "sarc"]
+	path = sarc
+	url = https://github.com/LITTOMA/sarc.git
